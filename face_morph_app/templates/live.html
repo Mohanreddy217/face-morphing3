@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Capture - Face Morphing Detection</title>
+   <style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(to right, #f0f2f5, #d9e4f5);
+        color: #2c3e50;
+        padding: 40px 20px;
+        margin: 0;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        color: #0d47a1;
+        margin-bottom: 30px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    video, canvas {
+        border-radius: 16px;
+        border: 3px solid #90caf9;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        margin-top: 20px;
+        max-width: 90%;
+        transition: all 0.3s ease;
+    }
+
+    button {
+        padding: 14px 30px;
+        margin-top: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        background: linear-gradient(to right, #42a5f5, #1e88e5);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+        background: linear-gradient(to right, #1e88e5, #1565c0);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(30, 136, 229, 0.3);
+    }
+
+    #result {
+        margin-top: 30px;
+        font-size: 20px;
+        font-weight: 500;
+        color: #2e7d32;
+        background-color: #e8f5e9;
+        padding: 12px 20px;
+        display: inline-block;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+
+
+</head>
+<body>
+    <h1>Live Webcam Capture</h1>
+    <video id="video" width="400" height="300" autoplay></video>
+    <br>
+    <button onclick="captureImage()">Capture & Predict</button>
+    <br>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <p id="result"></p>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const result = document.getElementById('result');
+
+        // Start the webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error('Webcam error:', err);
+                result.textContent = "Error: Unable to access the webcam.";
+            });
+
+        function captureImage() {
+            const context = canvas.getContext('2d');
+
+            // Set canvas size to match video frame
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the image
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert to blob
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('image', blob, 'webcam.jpg');
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.text().then(text => {
+                            throw new Error(`Server error: ${res.status} - ${text}`);
+                        });
+                    }
+
+                    const contentType = res.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        throw new Error("Invalid JSON response from server");
+                    }
+
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.result) {
+                        result.textContent = "Prediction: " + data.result;
+                    } else if (data.error) {
+                        result.textContent = "Error: " + data.error;
+                    } else {
+                        result.textContent = "Unexpected response from server.";
+                    }
+                })
+                .catch(err => {
+                    console.error('Prediction error:', err);
+                    result.textContent = "Error: " + err.message;
+                });
+            }, 'image/jpeg');
+        }
+    </script>
+</body>
+</html>

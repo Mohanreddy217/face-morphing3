@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #e0f7fa, #80deea);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        p {
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+
+    <form method="POST" action="/" enctype="multipart/form-data">
+        <input type="text" name="message" placeholder="Enter your message" required>
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if success %}
+        <p style="color: green;">Thank you! Your submission has been saved.</p>
+    {% endif %}
+{% endblock %}

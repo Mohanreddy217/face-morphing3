@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 style="color: #333; margin-bottom: 20px;">Upload an Image</h2>
+
+<form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" style="background: #f8f9fa; padding: 20px; border-radius: 10px; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    <input type="file" name="image" id="imageInput" required style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%;">
+    <br><br>
+    <img id="preview" src="#" alt="Image Preview" style="display:none; max-width: 100%; border: 2px solid #ccc; border-radius: 6px;"/>
+    <br><br>
+    <input type="submit" value="Upload and Detect" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+</form>
+
+{% if result %}
+    <p style="margin-top: 20px; font-size: 18px; color: #007BFF;"><strong>Prediction:</strong> {{ result }}</p>
+{% endif %}
+
+<script>
+    const input = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+
+    input.onchange = e => {
+        const [file] = input.files;
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+        }
+    };
+</script>
+{% endblock %}
